@@ -1,19 +1,20 @@
-import os
 import discord
 from discord.ext import commands, tasks
 import aiosqlite
+import asyncio
 from datetime import datetime, timedelta
-from keep_alive import keep_alive  # Import the keep_alive function
 
 intents = discord.Intents.default()
-intents.message_content = True
+intents.message_content = True  # Make sure this is enabled in the Developer Portal too
 
 bot = commands.Bot(command_prefix="!", intents=intents)
+
 DB_PATH = "timecapsule.db"
 
 @bot.event
 async def on_ready():
     print(f"✅ Logged in as {bot.user}")
+    # Create the database table if it doesn't exist
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("""
             CREATE TABLE IF NOT EXISTS capsules (
@@ -28,13 +29,15 @@ async def on_ready():
 
 @bot.command()
 async def save(ctx, time: str, *, message: str):
+    """
+    Save a message to be sent back after a certain time.
+    Time format examples:
+    10s (seconds), 5m (minutes), 2h (hours), 1d (days)
+    """
     time_multipliers = {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}
     try:
         amount = int(time[:-1])
         unit = time[-1]
-        if unit not in time_multipliers:
-            await ctx.send("❌ Invalid time unit! Use s, m, h, d.")
-            return
         seconds = amount * time_multipliers[unit]
     except:
         await ctx.send("❌ Invalid time format! Use s, m, h, d (e.g., 10s, 5m, 2h, 1d).")
@@ -53,7 +56,7 @@ async def save(ctx, time: str, *, message: str):
 
 @tasks.loop(seconds=10)
 async def check_capsules():
-    print("⏱️ Checking for due messages...")
+    print("⏱️ Checking for due messages...")  # Debug print
     now = datetime.utcnow()
     async with aiosqlite.connect(DB_PATH) as db:
         cursor = await db.execute(
@@ -71,5 +74,6 @@ async def check_capsules():
             await db.execute("DELETE FROM capsules WHERE id = ?", (capsule_id,))
         await db.commit()
 
-keep_alive()  # Start the uptime server
-bot.run(os.getenv("_DISCORD_TOKEN"))  # Run bot with token from Replit secrets
+# 🔐 YOUR BOT TOKEN HERE (make sure to hide this in production!)
+bot.run("Your_Bot_Token")
+
