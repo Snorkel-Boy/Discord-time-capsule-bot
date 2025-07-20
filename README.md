@@ -1,6 +1,6 @@
 # ⏳ Time Capsule Discord Bot
 
-This is a Discord bot that lets users "bury" a message and have it automatically sent back to them in a direct message (DM) after a delay.
+This is a Discord bot that lets users bury/store a message and have it automatically sent back to them in a direct message (DM) after a delay.
 
 ## 🚀 Features
 
